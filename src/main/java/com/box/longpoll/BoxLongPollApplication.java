@@ -8,6 +8,9 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 @SpringBootApplication
 public class BoxLongPollApplication {
 
+	/*
+	 * @param - Box Developer Token as program argument
+	 */
 	public static void main(String[] args) throws Exception {
 		SpringApplication.run(BoxLongPollApplication.class, args);
 		if( args[0] == null )	{
@@ -19,11 +22,14 @@ public class BoxLongPollApplication {
 		callBoxAPI(token);
 	}
 	
+	/*
+	 * This method calls the Box long polling APIs sequentially and asynchronously long polls the event stream
+	 *   @param - Box Developer Token
+	 */
 	private static void callBoxAPI(String token) throws Exception	{
 		BoxAPIFactory boxApi = new BoxAPIFactory();
 		String current_stream_position = boxApi.getCurrentStreamPosition(token);
 		String long_poll_url = boxApi.getLongPollURL(token);
-//		String message = boxApi.startLongPoll(current_stream_position, long_poll_url, token);
 		CompletableFuture<String> message = boxApi.startLongPoll(current_stream_position, long_poll_url, token);
 		System.out.println(message.get());
 		if(message != null && message.get().equals("reconnect"))

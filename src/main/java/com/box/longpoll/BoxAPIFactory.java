@@ -18,15 +18,28 @@ public class BoxAPIFactory {
 	
 	final String CURRENT_STREAM_URI = "https://api.box.com/2.0/events?stream_position=now";
 	final String EVENT_URI = "https://api.box.com/2.0/events";
+
 	
+	/*
+	 * This methods returns the current event stream position
+	 * 
+	 * @param - Box Developer Token
+	 * @return - Current Event Stream position
+	 */
 	public String getCurrentStreamPosition(String token) throws Exception	{
         ObjectMapper mapper = new ObjectMapper();
         JsonNode root = mapper.readTree(getBoxAPIResponse(new URI(CURRENT_STREAM_URI),token, HttpMethod.GET));
         JsonNode next_stream_position = root.path("next_stream_position");
-//        System.out.println("getCurrentStreamPosition -- next_stream_position -- "+next_stream_position.asText());
         return next_stream_position.asText();
 	}
-	
+
+	/*
+	 * This method is the core of hitting the Box API and renders a response in a JSON String
+	 * @param - URI of the Box API
+	 * @param - Box Developer Token
+	 * @param - HTTP Method
+	 * @return - JSON String
+	 */
 	private String getBoxAPIResponse(URI uri, String token, HttpMethod method) throws Exception	{
 		RestTemplate restTemplate = new RestTemplate();
         HttpHeaders headers = new HttpHeaders();
@@ -43,7 +56,11 @@ public class BoxAPIFactory {
         return response.getBody();
 	}
 	
-	
+	/*
+	 * This method return the long polling URL
+	 * @param - Box Developer Token
+	 * @return - long polling URL
+	 */
 	public String getLongPollURL(String token) throws Exception {
 		ObjectMapper mapper = new ObjectMapper();
         JsonNode root = mapper.readTree(getBoxAPIResponse(new URI(EVENT_URI),token,HttpMethod.OPTIONS));
@@ -60,6 +77,12 @@ public class BoxAPIFactory {
         return url.asText();
 	}
 	
+	/*
+	 * This method hits the long polling Box URL and updates about an event
+	 * @param - Current Stream Position
+	 * @param - Box Developer Token
+	 * @return - Asynchronously returns the long polling message
+	 */
 	@Async
 	public CompletableFuture<String> startLongPoll(String stream_position, String uri, String token)	throws Exception {
 		String url = uri + "&stream_position="+stream_position;
@@ -74,6 +97,12 @@ public class BoxAPIFactory {
 		return CompletableFuture.completedFuture(message.asText());
 	}
 	
+	/*
+	 * This method returns the event details (event id and event type) for a given stream position
+	 * @param - Current Stream Position
+	 * @param - Box Developer Token
+	 * @return - Event details (04a868b1591d5ee74d513f1fb008a2196ec8290f | ITEM_TRASH)
+	 */
 	public String getEventDetails(String stream_position,String token) throws Exception	{
 		String url = EVENT_URI + "?stream_position="+stream_position;
 		ObjectMapper mapper = new ObjectMapper();
@@ -91,30 +120,5 @@ public class BoxAPIFactory {
         	throw new Exception("No valid event details returned from Box");
         return eventId.asText() + " | " + eventType.asText();
 	}
-
-	/*
-	public String startLongPoll(String stream_position, String uri, String token)	throws Exception {
-		String url = uri + "&stream_position="+stream_position;
-		System.out.println("Long poll URL -- "+url);
-		AsyncRestTemplate restTemplate = new AsyncRestTemplate();
-		DeferredResult<String> result = new DeferredResult<>();
-		ListenableFuture<ResponseEntity<String>> futureEntity = restTemplate.getForEntity(url, String.class);
-		
-	    futureEntity.addCallback(new ListenableFutureCallback<ResponseEntity<String>>() {
-
-	        @Override
-	        public void onFailure(Throwable ex) {
-	            result.setErrorResult(ex.getMessage());
-	        }
-
-			@Override
-			public void onSuccess(ResponseEntity<String> response) {
-				System.out.println("Sucesss "+response);
-				result.setResult(response.getBody());
-			}
-	    });
-	    System.out.println("result "+result.getResult());
-	    return result.getResult().toString();		
-	}*/
 
 }
