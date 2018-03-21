@@ -26,8 +26,10 @@ public class BoxLongPollApplication {
 //		String message = boxApi.startLongPoll(current_stream_position, long_poll_url, token);
 		CompletableFuture<String> message = boxApi.startLongPoll(current_stream_position, long_poll_url, token);
 		System.out.println(message.get());
+		if(message != null && message.equals("reconnect"))
+			callBoxAPI(token);
 		String eventDetails = boxApi.getEventDetails(current_stream_position, token);
-		System.out.println("event details "+eventDetails);
+		System.out.println(eventDetails);
 		if(message != null)
 			callBoxAPI(token);
 		
