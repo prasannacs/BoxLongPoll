@@ -1,0 +1,4 @@
+Execute the Jar with the below command
+Ensure you have JRE 1.8
+
+java -jar lpoll.jar token=<<BOX_DEVELOPER_TOKEN>>
